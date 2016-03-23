@@ -90,18 +90,18 @@ void drawCircle()
 	glClear(GL_COLOR_BUFFER_BIT);           // Clear display window
 
 	glColor3f(1.0, 0.0, 0.0);               // Set line segment color to red
-	circleMidpoint(100, 100, 50);
+	circleMidpoint(100, 75, 50);
 
 	glFlush();
 }
 
 int main(int argc, char **argv)
 {
-	glutInit(&argc, argv);                  // Initialize GLUT
+	glutInit(&argc, argv);				    // Initialize GLUT
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);    // Set display mode
 	glutInitWindowPosition(50, 100);        // Set top-left display-window position
 	glutInitWindowSize(400, 300);           // Set display-window width and height
-	glutCreateWindow("Circle");      // Create display window
+	glutCreateWindow("Circle");				// Create display window
 
 	// init
 	glClearColor(1.0, 1.0, 1.0, 1.0);       // set display-window color to white
@@ -109,6 +109,7 @@ int main(int argc, char **argv)
 	glMatrixMode(GL_PROJECTION);            // set projection parameters
 	gluOrtho2D(0.0, 200.0, 0.0, 150.0);
 
+	// draw
 	glutDisplayFunc(drawCircle);           // Send graphics to display window
 	glutMainLoop();                         // Display everything and wait
 }
