@@ -1,5 +1,4 @@
-#include <GL/glut.h>
-#include <iostream>
+#include<GL/glut.h>
 
 class screenPt
 {
@@ -57,7 +56,7 @@ void circleMidpoint(GLint xc, GLint yc, GLint radius)
 	// Plot the initial point in each circle quadrant.
 	circlePlotPoints(xc, yc, circPt);
 	// Calculate next point and plot in each octant.
-	while(circPt.getx() < circPt.gety())
+	while(circPt.getx() < circPt.gety())		// while the circPt is less than 45 degrees
 	{
 		circPt.incrementx();
 		if (p < 0)
