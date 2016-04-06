@@ -59,10 +59,19 @@ void draw_bezier(Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, int level = 1)
 
 void draw()
 {
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glColor3f(1.0, 0.0, 0.0);
+
 	Vec2 p1(80.0, 80.0);
 	Vec2 p2(160.0, 400.0);
 	Vec2 p3(480.0, 400.0);
 	Vec2 p4(560.0, 80.0);
+	glPointSize(8.0);
+	drawDot(p1);
+	drawDot(p2);
+	drawDot(p3);
+	drawDot(p4);
 	draw_bezier(p1, p2, p3, p4);
 }
 
@@ -80,8 +89,8 @@ void main(int argc, char ** argv)
 	glutInitWindowPosition(100, 50);
 	glutInitWindowSize(640, 480);
 	glutCreateWindow("Plot Bezier curve using de Casteljau");
-	glColor3f(1.0, 0.0, 0.0);
 
+	init();
 	glutDisplayFunc(draw);
 	glutMainLoop();
 }
