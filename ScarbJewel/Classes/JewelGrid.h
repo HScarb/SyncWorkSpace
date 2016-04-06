@@ -14,11 +14,11 @@ public:
 
 private:
 	Jewel* createAJewel(int col, int row);
-	bool isLegalJewel(Jewel * jewel);
+	bool isLegalJewel(Jewel * jewel, int x, int y);
 	void setJewelPixPos(Jewel * jewel, float x, float y);
 
 	void swapJewels(Jewel * jewel1, Jewel * jewel2);
-
+	void swapJewelMove(Jewel * jewel);
 	
 private:
 	virtual bool onTouchBegan(cocos2d::Touch * unused_touch, cocos2d::Event * unused_event);
