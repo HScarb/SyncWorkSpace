@@ -1,6 +1,7 @@
 #include <gl/glut.h>
 #include <cmath>
 #include <iostream>
+#include <stack>
 using namespace std;
 
 const int MAX_LEVEL = 5;
@@ -85,6 +86,7 @@ void draw_bezier(Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, int level = 1)
 GLubyte BoundaryColor[3] = { 255,255,255 };		// 边线颜色，黑色
 GLubyte InteriorColor[3] = { 255,0,0 };			// 填充颜色，红色
 GLubyte iPixelColor[3];
+stack<Vec2i> vecStack;
 int ct = 0;
 
 bool isSameColor(int r1,int g1, int b1, int r2, int g2, int b2)
@@ -100,7 +102,7 @@ void Fill_Boundary_4_Connected(int x, int y)
 {
 	ct++;
 	glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &iPixelColor);
-	cout << "r: " << (int)iPixelColor[0] << " g: " << (int)iPixelColor[1] << " b: " << (int)iPixelColor[2] << endl;
+	//cout << "r: " << (int)iPixelColor[0] << " g: " << (int)iPixelColor[1] << " b: " << (int)iPixelColor[2] << endl;
 	if (isSameColor((int)iPixelColor[0], (int)iPixelColor[1], (int)iPixelColor[2],
 		(int)BoundaryColor[0], (int)BoundaryColor[1], (int)BoundaryColor[2])
 		&& !isSameColor((int)iPixelColor[0], (int)iPixelColor[1], (int)iPixelColor[2],
@@ -120,10 +122,10 @@ void draw()
 
 	glColor3f(0.0, 0.0, 0.0);
 
-	Vec2 p1(80.0, 80.0);
-	Vec2 p2(160.0, 400.0);
-	Vec2 p3(480.0, 400.0);
-	Vec2 p4(560.0, 80.0);
+	Vec2 p1(80.0, 60.0);
+	Vec2 p2(120, 180.0);
+	Vec2 p3(200.0, 180.0);
+	Vec2 p4(240.0, 60.0);
 	//	glPointSize(8.0);
 	//	drawDot(p1);
 	//	drawDot(p2);
@@ -133,14 +135,14 @@ void draw()
 	drawLine(p1, p4);
 	
 	glColor3f(255, 0, 0);
-	Fill_Boundary_4_Connected(320, 240);
+	Fill_Boundary_4_Connected(160, 120);
 }
 
 void init()
 {
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glMatrixMode(GL_PROJECTION);
-	gluOrtho2D(0.0, 640.0, 0.0, 480.0);
+	gluOrtho2D(0.0, 320.0, 0.0, 240);
 }
 
 void main(int argc, char ** argv)
@@ -148,7 +150,7 @@ void main(int argc, char ** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowPosition(100, 50);
-	glutInitWindowSize(640, 480);
+	glutInitWindowSize(320, 240);
 	glutCreateWindow("Fill_Boundary");
 
 	init();
