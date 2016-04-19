@@ -83,10 +83,9 @@ void draw_bezier(Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, int level = 1)
 }
 
 // Fill boundary
-GLubyte BoundaryColor[3] = { 255,255,255 };		// 边线颜色，黑色
+GLubyte BoundaryColor[3] = { 0,0,0 };		// 边线颜色，黑色
 GLubyte InteriorColor[3] = { 255,0,0 };			// 填充颜色，红色
 GLubyte iPixelColor[3];
-stack<Vec2i> vecStack;
 int ct = 0;
 
 bool isSameColor(int r1,int g1, int b1, int r2, int g2, int b2)
@@ -98,7 +97,7 @@ bool isSameColor(int r1,int g1, int b1, int r2, int g2, int b2)
 		return false;
 }
 
-void Fill_Boundary_4_Connected(int x, int y)
+void Fill_Boundary_4_Connected_Recursion(int x, int y)
 {
 	ct++;
 	glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &iPixelColor);
@@ -109,10 +108,40 @@ void Fill_Boundary_4_Connected(int x, int y)
 		(int)InteriorColor[0], (int)InteriorColor[1], (int)InteriorColor[2]))
 	{
 		drawDoti(Vec2i(x,y));
-		Fill_Boundary_4_Connected(x + 1, y);
-		Fill_Boundary_4_Connected(x, y - 1);
-		Fill_Boundary_4_Connected(x - 1, y);
-		Fill_Boundary_4_Connected(x, y + 1);
+		Fill_Boundary_4_Connected_Recursion(x + 1, y);
+		Fill_Boundary_4_Connected_Recursion(x, y - 1);
+		Fill_Boundary_4_Connected_Recursion(x - 1, y);
+		Fill_Boundary_4_Connected_Recursion(x, y + 1);
+	}
+}
+
+void Fill_Boundary_4_Connected(int x, int y)
+{
+	stack<Vec2i> vecStack;
+	vecStack.push(Vec2i(x, y));
+	int xRight, xLeft, x_i, y_i, saveX;
+	while(!vecStack.empty())
+	{
+		// 获取栈顶元素
+		Vec2i tempVec = vecStack.top();
+		// 删除顶端元素
+		vecStack.pop();
+		saveX = tempVec.x;
+		x_i = tempVec.x;
+		y_i = tempVec.y;
+		glReadPixels(x_i, y_i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &iPixelColor);
+		while (!isSameColor(iPixelColor[0],iPixelColor[1],iPixelColor[2],
+			BoundaryColor[0],BoundaryColor[1],BoundaryColor[2]))
+		{
+			cout << "11";
+			drawDoti(Vec2i(x_i, y_i));
+			x_i = x_i + 1;
+			glReadPixels(x_i, y_i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &iPixelColor);
+		}
+		// 保存左端点
+		xLeft = x_i + 1;
+		// 从右边的点开始
+		
 	}
 }
 
