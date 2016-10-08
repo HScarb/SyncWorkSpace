@@ -12,7 +12,7 @@ MyMeshViewer
 #include <vector>
 using namespace std;
 #define M_PI 3.14159265358979323846
-#define UNIT 0.3f
+#define UNIT 3.0f
 #define MAXARRAYSUM 100000
 typedef OVM::THMesh_ArrayKernelT<> Mesh;
 
@@ -500,12 +500,12 @@ int main(int argc, char * argv[])
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(400, 400);
+	glutInitWindowSize(500, 500);
 	glutCreateWindow("OpenGL");
 	init();
 	glutReshapeFunc(reshape);
 	glutDisplayFunc(display2);
-	glutIdleFunc(display2);  //设置不断调用显示函数  
+	glutIdleFunc(display2);  //设置不断调用显示函数
 	glutMouseFunc(Mouse);
 	glutMotionFunc(onMouseMove);
 	glutMainLoop();
