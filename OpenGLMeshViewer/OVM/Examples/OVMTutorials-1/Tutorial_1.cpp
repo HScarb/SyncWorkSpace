@@ -12,7 +12,7 @@ MyMeshViewer
 #include <vector>
 using namespace std;
 #define M_PI 3.14159265358979323846
-#define UNIT 3.0f
+#define UNIT 0.3f
 #define MAXARRAYSUM 100000
 typedef OVM::THMesh_ArrayKernelT<> Mesh;
 
@@ -44,14 +44,19 @@ Mesh mesh;
 int v_cnt;
 GLushort * item_indices;
 GLushort * wire_indices;
+GLfloat * vertices;
+GLfloat * linesArray;
+GLfloat * verticesArray;
+
 
 GLboolean mouserdown = GL_FALSE;
 GLboolean mouseldown = GL_FALSE;
 GLboolean mousemdown = GL_FALSE;
 
+vector<V3f> vertexVector;
+
 void setupPointers()
 {
-	GLfloat * vertices;
 	v_cnt = 0;
 	for (Mesh::HedronIter h_it = mesh.hedrons_begin(); h_it != mesh.hedrons_end(); ++h_it)
 	{
@@ -78,6 +83,7 @@ void setupPointers()
 			vertices[v_cnt++] = v[0] * UNIT;
 			vertices[v_cnt++] = v[1] * UNIT;
 			vertices[v_cnt++] = v[2] * UNIT;
+			vertexVector.push_back(V3f(v[0], v[1], v[2]));
 		}
 	}
 	v_cnt /= 3;
@@ -190,6 +196,346 @@ void setupPointers()
 	{
 		cout << "vertices[" << i << "] = " << vertices[i] / UNIT << endl;
 	}*/
+}
+
+// 将顶点数据读取，并且为DrawArrays排序
+void setupPointersByArray()
+{
+	v_cnt = 0;
+	for (Mesh::HedronIter h_it = mesh.hedrons_begin(); h_it != mesh.hedrons_end(); ++h_it)
+	{
+		// --- using the circulator to access the vertices of a hedron ---
+		for (Mesh::HedronVertexIter hv_it = mesh.hedron_vertex_iter(h_it); hv_it; ++hv_it)
+		{
+			/*Mesh::Point v;
+			v = mesh.point(hv_it.handle());
+			vertices[v_cnt++] = v[0] * UNIT;
+			vertices[v_cnt++] = v[1] * UNIT;
+			vertices[v_cnt++] = v[2] * UNIT;*/
+			v_cnt += 3;
+		}
+	}
+	vertices = new GLfloat[v_cnt];
+	v_cnt = 0;
+	for (Mesh::HedronIter h_it = mesh.hedrons_begin(); h_it != mesh.hedrons_end(); ++h_it)
+	{
+		// --- using the circulator to access the vertices of a hedron ---
+		for (Mesh::HedronVertexIter hv_it = mesh.hedron_vertex_iter(h_it); hv_it; ++hv_it)
+		{
+			Mesh::Point v;
+			v = mesh.point(hv_it.handle());
+			vertices[v_cnt++] = v[0] * UNIT;
+			vertices[v_cnt++] = v[1] * UNIT;
+			vertices[v_cnt++] = v[2] * UNIT;
+			vertexVector.push_back(V3f(v[0], v[1], v[2]));
+		}
+	}
+	v_cnt /= 3;
+	cout << "Total vertices: " << v_cnt << endl;
+
+	/*glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, vertices);*/
+
+	if (file_format == "hex")
+	{
+		const int indexNum = v_cnt * 9;
+		verticesArray = new GLfloat[indexNum];
+		linesArray = new GLfloat[indexNum];
+		cout << "indexNum: " << indexNum << endl;
+		const int step1 = 72;
+		const int step2 = 24;
+		const int dim = 3;
+		int i = 0;
+
+
+
+		// 绘制面
+		// cnt 六面体编号
+		for (int cnt = 0; cnt < (v_cnt / 8); cnt++)
+		{
+			i = 0;
+			// bottom
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			// front					
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 2];
+			// right					
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			// back						
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			// left						
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 2];
+			// top						
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 2];
+		}
+
+		// 绘制边
+		for (int cnt = 0; cnt < (v_cnt / 8); cnt++)
+		{
+			i = 0;
+			// bottom
+			// 0-1
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			// 1-2
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			// 2-3
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			// 3-0
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			// top
+			// 4-5
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 2];
+			// 5-6
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 2];
+			// 6-7
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 2];
+			// 7-4
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 2];
+			// front
+			// 2-6
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 6 * dim + 2];
+			// 3-7
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 7 * dim + 2];
+			// back
+			// 0-4
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 4 * dim + 2];
+			// 1-5
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 5 * dim + 2];
+		}
+	}
+	// tet
+	else
+	{
+		const int indexNum = v_cnt * 9;
+		verticesArray = new GLfloat[indexNum];
+		linesArray = new GLfloat[indexNum];
+		cout << "indexNum: " << indexNum << endl;
+		const int step1 = 36;
+		const int step2 = 12;
+		const int dim = 3;
+		int i = 0;
+
+		// 绘制面
+		for (int cnt = 0; cnt < (v_cnt / 4); cnt++)
+		{
+			i = 0;
+			// bottom
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			// left
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			// back
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			// front
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			verticesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+		}
+		// 绘制边
+		for (int cnt = 0; cnt < (v_cnt / 4); cnt++)
+		{
+			i = 0;
+			// bottom
+			// 0-1
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			// 1-2
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			// 2-0
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			// left
+			// 0-3
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 0 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			// 2-3
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 2 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+			// back
+			// 1-3
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 1 * dim + 2];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 0];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 1];
+			linesArray[cnt * step1 + (i++)] = vertices[cnt * step2 + 3 * dim + 2];
+		}
+	}
 }
 
 void RotateX(float angle)
@@ -308,6 +654,7 @@ void drawhex(V3f p1, V3f p2, V3f p3, V3f p4, V3f p5, V3f p6, V3f p7, V3f p8,
 	glEnd();
 }
 
+// glBegin glEnd
 void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -323,19 +670,9 @@ void display()
 	//	gluLookAt(r*cos(c*du), 0, r*sin(c*du) + 50, 0, 0, 0, 0, 1, 0); //从视点看远点,y轴方向(0,1,0)是上方向  
 	cam->setModelViewMatrix();
 
-	vector<V3f> vertexVector;
+
 	if(file_format == "hex")
 	{
-		for (Mesh::HedronIter h_it = mesh.hedrons_begin(); h_it != mesh.hedrons_end(); ++h_it)
-		{
-			// --- using the circulator to access the vertices of a hedron ---
-			for (Mesh::HedronVertexIter hv_it = mesh.hedron_vertex_iter(h_it); hv_it; ++hv_it)
-			{
-				Mesh::Point v;
-				v = mesh.point(hv_it.handle());
-				vertexVector.push_back(V3f(v[0], v[1], v[2]));
-			}
-		}
 		int i = 0;
 		while (i < vertexVector.size())
 		{
@@ -354,16 +691,6 @@ void display()
 	}
 	else
 	{
-		for (Mesh::HedronIter h_it = mesh.hedrons_begin(); h_it != mesh.hedrons_end(); ++h_it)
-		{
-			// --- using the circulator to access the vertices of a hedron ---
-			for (Mesh::HedronVertexIter hv_it = mesh.hedron_vertex_iter(h_it); hv_it; ++hv_it)
-			{
-				Mesh::Point v;
-				v = mesh.point(hv_it.handle());
-				vertexVector.push_back(V3f(v[0], v[1], v[2]));
-			}
-		}
 		int i = 0;
 		while (i < vertexVector.size())
 		{
@@ -380,6 +707,7 @@ void display()
 	glutSwapBuffers();
 }
 
+// glDrawElements
 void display2()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -389,6 +717,17 @@ void display2()
 	glHint(GL_POINT_SMOOTH, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH, GL_NICEST);
+	
+/*	glPushMatrix();
+	glPushAttrib(GL_ENABLE_BIT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_POINT_SMOOTH);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, vertices);*/
+
 
 	glLoadIdentity();
 	//	gluLookAt(r*cos(c*du), h, r*sin(c*du), 0, 0, 0, 0, 1, 0); //从视点看远点,y轴方向(0,1,0)是上方向  
@@ -416,9 +755,61 @@ void display2()
 		glDrawElements(GL_LINES, indexNum, GL_UNSIGNED_SHORT, wire_indices);
 	}
 
+	/*glEnable(GL_COLOR_MATERIAL);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDisableClientState(GL_VERTEX_ARRAY);*/
+
 	glutSwapBuffers();
 }
 
+// glDrawArray
+void display3()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glPushMatrix();
+
+	glEnable(GL_POINT_SMOOTH);
+	glHint(GL_POINT_SMOOTH, GL_NICEST);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH, GL_NICEST);
+
+	glLoadIdentity();
+	cam->setModelViewMatrix();
+
+	// hex
+	if (file_format == "hex")
+	{
+		const int indexNum = v_cnt * 3;
+		// 绘制面
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, verticesArray);
+		glColor3f(0.3f, 0.8f, 0.3f);
+		glDrawArrays(GL_QUADS, 0, v_cnt * 3);
+		// 绘制边
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, linesArray);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glDrawArrays(GL_LINES, 0, v_cnt * 3);
+	}
+	// tet
+	else
+	{
+		const int indexNum = v_cnt * 3;
+
+		// 绘制面
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, verticesArray);
+		glColor3f(0.3f, 0.8f, 0.3f);
+		glDrawArrays(GL_TRIANGLES, 0, v_cnt * 3);
+		// 绘制边
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, linesArray);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glDrawArrays(GL_LINES, 0, v_cnt * 3);
+	}
+
+	glutSwapBuffers();
+}
 void Mouse(int button, int state, int x, int y)		// mouse click
 {
 	if (state == GLUT_DOWN)	// 第一次鼠标按下时记录在窗口中的坐标
@@ -470,7 +861,7 @@ void init()
 	Vector3d target(0.0, 0.0, 0.0);
 	Vector3d up(0.0, 1.0, 0.0);
 	cam = new GLCamera(pos, target, up);
-	setupPointers();
+	setupPointersByArray();
 }
 
 void reshape(int w, int h)
@@ -504,8 +895,8 @@ int main(int argc, char * argv[])
 	glutCreateWindow("OpenGL");
 	init();
 	glutReshapeFunc(reshape);
-	glutDisplayFunc(display2);
-	glutIdleFunc(display2);  //设置不断调用显示函数
+	glutDisplayFunc(display3);
+	glutIdleFunc(display3);  //设置不断调用显示函数
 	glutMouseFunc(Mouse);
 	glutMotionFunc(onMouseMove);
 	glutMainLoop();

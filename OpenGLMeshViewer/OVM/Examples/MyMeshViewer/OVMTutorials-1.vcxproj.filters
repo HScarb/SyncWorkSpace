@@ -18,5 +18,16 @@
     <ClCompile Include="Tutorial_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="glCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glCamera.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eigen.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -78,12 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="glCamera.cpp" />
     <ClCompile Include="Tutorial_1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OVMCore\OVMCore.vcxproj">
       <Project>{6f10fae8-f1b5-45e5-9cf0-1af70449810d}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="eigen.h" />
+    <ClInclude Include="glCamera.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
