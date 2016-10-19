@@ -61,6 +61,7 @@ namespace OVM
 		* line will be read, this process ends until reaching the end-of-file or a 
 		* non-empty line.  Return NULL if it is the end-of-file, otherwise, return 
 		* a pointer to the first non-whitespace character of the line.  
+		* 处理文本，去掉空白处
 		*/
 		char * _IOManager_::read_line_chars(char *  _result, std::ifstream & _infile, int & _linenumber)
 		{
@@ -90,7 +91,7 @@ namespace OVM
 		* Jumps past the current field by searching for whitespace or a comma, then
 		* jumps past the whitespace or the comma to find the next field that looks 
 		* like a number.   
-		*      
+		* 跳到下一个数字
 		*/
 		char * _IOManager_::find_next_sub_str(char * _str)
 		{

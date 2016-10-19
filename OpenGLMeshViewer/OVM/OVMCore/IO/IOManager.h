@@ -121,8 +121,8 @@ namespace OVM
 					return false;
 				}
 
-				int lineCount;
-				int dim;
+				int lineCount;		// 行号?
+				int dim;			// 维度
 				unsigned int nv;
 				unsigned int nf;
 				unsigned int nh;
@@ -153,7 +153,7 @@ namespace OVM
 						//--- read the dim sector
 						if (!dim)
 						{					
-							buf = strstr(buff, "Dimension");
+							buf = strstr(buff, "Dimension");		// strstr()返回str2是否是str1的子串
 							if (buf)
 							{
 								buf = trim_str(buf);
