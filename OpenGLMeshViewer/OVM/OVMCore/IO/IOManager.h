@@ -123,12 +123,12 @@ namespace OVM
 
 				int lineCount;		// 行号?
 				int dim;			// 维度
-				unsigned int nv;
-				unsigned int nf;
-				unsigned int nh;
-				unsigned int corners;
+				unsigned int nv;	// vertex 顶点个数
+				unsigned int nf;		// face: Triangles/Quadrilaterals 面的个数
+				unsigned int nh;		// hedron: Tetrahedra/Hexahedra 三维图形的个数
+				unsigned int corners;	// 面的角数量，三角形为3，四边形为4
 				unsigned int mt;
-				unsigned int nt;
+				unsigned int nt;		// 
 				mt = 0;
 				char buffer[_INPUTLINESIZE_];
 				char * buff;
@@ -138,35 +138,36 @@ namespace OVM
 				nf = 0;
 				nh = 0;
 				lineCount = 0;
-				corners = 0;
+				corners = 0;								
 				dim = 0;
-				std::vector<typename MeshT::Point> pc;
-				std::vector<unsigned int> indices;
-				typename MeshT::Scalar cdt[4];
+				std::vector<typename MeshT::Point> pc;		// 所有点的容器，存放所有顶点
+				std::vector<unsigned int> indices;			// 储存顶点的下标顺序?
+				typename MeshT::Scalar cdt[4];				// 4维容器,用于存放一个点的坐标
 				int idx[9];
 
 				//--- read the medit file
-				while ((buff = read_line_chars(buffer, f, lineCount)) != NULL)
+				while ((buff = read_line_chars(buffer, f, lineCount)) != NULL)		// 每次读一行
 				{
 					if (buff[0] != '#')
 					{
 						//--- read the dim sector
 						if (!dim)
 						{					
-							buf = strstr(buff, "Dimension");		// strstr()返回str2是否是str1的子串
-							if (buf)
+							// buf = Dimension的位置
+							buf = strstr(buff, "Dimension");		// strstr()返回str2是否是str1的子串。如果是，则该函数返回str2在str1中首次出现的地址；否则，返回NULL。
+							if (buf)		// 如果找到Dimension
 							{
-								buf = trim_str(buf);
+								buf = trim_str(buf);				// 去掉空格制表符等符号
 								if (strlen(buf) != 9)
 								{									
 									buf = find_next_sub_str(buf);
-									dim = (int)strtod(buf, & buf);
+									dim = (int)strtod(buf, & buf);	// 将字符串转换成浮点数
 								}
 								else
 								{
-									f >> dim;
+									f >> dim;						// 接收维度
 								}
-								if ((dim != 2) && (dim != 3))
+								if ((dim != 2) && (dim != 3))		// 如果不是2维和3维，报错
 								{
 									std::cerr << "Unknown dimension...\n";
 									f.close();
